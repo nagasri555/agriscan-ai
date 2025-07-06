@@ -5,6 +5,7 @@
   <title>AgriScan AI</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
   <style>
     .carousel-item img {
       height: 100vh;
@@ -12,20 +13,33 @@
     }
     .carousel-caption {
       position: absolute;
-      top: 65%;
-      left: 49%;
+      top: 50%; /* Better centered on all devices */
+      left: 50%;
       transform: translate(-50%, -50%);
       background-color: rgba(0, 0, 0, 0.5);
-      padding: 30px;
+      padding: 20px;
       border-radius: 10px;
       z-index: 10;
+      width: 90%;
+      max-width: 500px;
+    }
+    @media (max-width: 576px) {
+      .carousel-caption h1 {
+        font-size: 1.5rem;
+      }
+      .carousel-caption p {
+        font-size: 1rem;
+      }
+      .carousel-caption .btn {
+        font-size: 1rem;
+        padding: 10px 20px;
+      }
     }
   </style>
 </head>
 <body>
 
-  <!-- ✅ Navbar with Camera -->
- <!-- ✅ Navbar with User Authentication -->
+<!-- ✅ Navbar -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-success">
   <div class="container">
     <a class="navbar-brand" href="{{ url_for('home') }}">AgriScan AI</a>
@@ -65,46 +79,45 @@
   </div>
 </nav>
 
-
-  <!-- ✅ Carousel Section -->
-  <div id="cropCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="3000">
-    <div class="carousel-inner">
-      <div class="carousel-item active">
-        <img src="https://static.eos.com/wp-content/uploads/2021/06/interface-tablet.jpg" class="d-block w-100" alt="Slide 1">
-      </div>
-      <div class="carousel-item">
-        <img src="https://editor.analyticsvidhya.com/uploads/57480crop-Precision-Agriculture.jpg" class="d-block w-100" alt="Slide 2">
-      </div>
-      <div class="carousel-item">
-        <img src="https://img.freepik.com/premium-photo/farmer-uses-smartphone-app-realtime-crop-monitoring-highlighting-ai-s-role-agriculture_210545-8030.jpg" class="d-block w-100" alt="Slide 3">
-      </div>
-      <div class="carousel-item">
-        <img src="https://www.zenadrone.com/wp-content/uploads/2022/12/Inspecting-Crops-Using-Drones-1-1024x536.jpg" class="d-block w-100" alt="Slide 4">
-      </div>
-
-      <!-- Caption -->
-      <div class="carousel-caption">
-        <h1 class="display-6">Empowering Farmers with AI</h1>
-        <p class="lead">AI-powered crop monitoring and disease detection using computer vision </p>
-        <a href="{{ url_for('upload_page') }}" class="btn btn-success btn-lg mt-2">Start Detection</a>
-      </div>
+<!-- ✅ Carousel Section -->
+<div id="cropCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="3000">
+  <div class="carousel-inner">
+    <div class="carousel-item active">
+      <img src="https://static.eos.com/wp-content/uploads/2021/06/interface-tablet.jpg" class="d-block w-100" alt="Slide 1">
+    </div>
+    <div class="carousel-item">
+      <img src="https://editor.analyticsvidhya.com/uploads/57480crop-Precision-Agriculture.jpg" class="d-block w-100" alt="Slide 2">
+    </div>
+    <div class="carousel-item">
+      <img src="https://img.freepik.com/premium-photo/farmer-uses-smartphone-app-realtime-crop-monitoring-highlighting-ai-s-role-agriculture_210545-8030.jpg" class="d-block w-100" alt="Slide 3">
+    </div>
+    <div class="carousel-item">
+      <img src="https://www.zenadrone.com/wp-content/uploads/2022/12/Inspecting-Crops-Using-Drones-1-1024x536.jpg" class="d-block w-100" alt="Slide 4">
     </div>
 
-    <!-- Controls -->
-    <button class="carousel-control-prev" type="button" data-bs-target="#cropCarousel" data-bs-slide="prev">
-      <span class="carousel-control-prev-icon"></span>
-    </button>
-    <button class="carousel-control-next" type="button" data-bs-target="#cropCarousel" data-bs-slide="next">
-      <span class="carousel-control-next-icon"></span>
-    </button>
+    <!-- ✅ Caption -->
+    <div class="carousel-caption">
+      <h1>Empowering Farmers with AI</h1>
+      <p>AI-powered crop monitoring and disease detection using computer vision</p>
+      <a href="{{ url_for('upload_page') }}" class="btn btn-success btn-lg mt-2">Start Detection</a>
+    </div>
   </div>
 
-  <!-- Footer -->
-  <footer class="bg-success text-white text-center py-3">
-    <p>&copy; 2025 AgriScan AI. All rights reserved.</p>
-  </footer>
+  <!-- ✅ Controls -->
+  <button class="carousel-control-prev" type="button" data-bs-target="#cropCarousel" data-bs-slide="prev">
+    <span class="carousel-control-prev-icon"></span>
+  </button>
+  <button class="carousel-control-next" type="button" data-bs-target="#cropCarousel" data-bs-slide="next">
+    <span class="carousel-control-next-icon"></span>
+  </button>
+</div>
 
-  <!-- Bootstrap JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- ✅ Footer -->
+<footer class="bg-success text-white text-center py-3">
+  <p>&copy; 2025 AgriScan AI. All rights reserved.</p>
+</footer>
+
+<!-- ✅ Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
