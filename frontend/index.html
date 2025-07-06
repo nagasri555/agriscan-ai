@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AgriScan AI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .carousel-item img {
+      height: 100vh;
+      object-fit: cover;
+    }
+    .carousel-caption {
+      position: absolute;
+      top: 65%;
+      left: 49%;
+      transform: translate(-50%, -50%);
+      background-color: rgba(0, 0, 0, 0.5);
+      padding: 30px;
+      border-radius: 10px;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ✅ Navbar with Camera -->
+ <!-- ✅ Navbar with User Authentication -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-success">
+  <div class="container">
+    <a class="navbar-brand" href="{{ url_for('home') }}">AgriScan AI</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+      <ul class="navbar-nav">
+        <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('home') }}">Home</a></li>
+        <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('upload_page') }}">Detect</a></li>
+        <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('analytics') }}">Analytics</a></li>
+        <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('history_page') }}">History</a></li>
+        <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('about_page') }}">About</a></li>
+        <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('contact_page') }}">Contact</a></li>
+
+        {% if session.get('role') == 'admin' %}
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('view_users') }}">Admin Panel</a>
+          </li>
+        {% endif %}
+
+        {% if session.get('username') %}
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle text-white" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              {{ session['username'] }}
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item" href="{{ url_for('logout') }}">Logout</a></li>
+            </ul>
+          </li>
+        {% else %}
+          <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('login') }}">Login</a></li>
+          <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('signup') }}">Signup</a></li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <!-- ✅ Carousel Section -->
+  <div id="cropCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="3000">
+    <div class="carousel-inner">
+      <div class="carousel-item active">
+        <img src="https://static.eos.com/wp-content/uploads/2021/06/interface-tablet.jpg" class="d-block w-100" alt="Slide 1">
+      </div>
+      <div class="carousel-item">
+        <img src="https://editor.analyticsvidhya.com/uploads/57480crop-Precision-Agriculture.jpg" class="d-block w-100" alt="Slide 2">
+      </div>
+      <div class="carousel-item">
+        <img src="https://img.freepik.com/premium-photo/farmer-uses-smartphone-app-realtime-crop-monitoring-highlighting-ai-s-role-agriculture_210545-8030.jpg" class="d-block w-100" alt="Slide 3">
+      </div>
+      <div class="carousel-item">
+        <img src="https://www.zenadrone.com/wp-content/uploads/2022/12/Inspecting-Crops-Using-Drones-1-1024x536.jpg" class="d-block w-100" alt="Slide 4">
+      </div>
+
+      <!-- Caption -->
+      <div class="carousel-caption">
+        <h1 class="display-6">Empowering Farmers with AI</h1>
+        <p class="lead">AI-powered crop monitoring and disease detection using computer vision </p>
+        <a href="{{ url_for('upload_page') }}" class="btn btn-success btn-lg mt-2">Start Detection</a>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <button class="carousel-control-prev" type="button" data-bs-target="#cropCarousel" data-bs-slide="prev">
+      <span class="carousel-control-prev-icon"></span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#cropCarousel" data-bs-slide="next">
+      <span class="carousel-control-next-icon"></span>
+    </button>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-success text-white text-center py-3">
+    <p>&copy; 2025 AgriScan AI. All rights reserved.</p>
+  </footer>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
