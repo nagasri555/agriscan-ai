@@ -1,5 +1,7 @@
 import requests
 import base64
+import os
+
 
 PLANT_ID_URL = "https://api.plant.id/v2/health_assessment"
 

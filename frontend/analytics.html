@@ -6,49 +6,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
   <style>
-    body {
-      background-color: #f3fdf5;
-    }
-
-    .nav-link:hover {
-      color: #d4f4da !important;
-    }
-
-    .dashboard {
-      padding: 30px 15px;
-    }
-
-    .stat-box {
-      background-color: #ffffff;
-      padding: 20px;
-      border-radius: 15px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    .stat-box h2 {
-      font-size: 2.2rem;
-      color: #198754;
-      font-weight: bold;
-    }
-
-    .stat-box p {
-      margin: 0;
-      font-size: 1.1rem;
-      color: #555;
-    }
-
-    canvas {
-      max-width: 100%;
-    }
+    body{background:#f3fdf5;}
+    .dashboard{padding:30px 15px;}
+    .stat-box{background:#fff;padding:20px;border-radius:15px;box-shadow:0 4px 12px rgba(0,0,0,.08);text-align:center;margin-bottom:20px;}
+    .stat-box h2{font-size:2.2rem;color:#198754;font-weight:bold;margin:0;}
+    .stat-box p{margin:0;font-size:1.1rem;color:#555;}
+    canvas{max-width:100%;}
   </style>
 </head>
 <body>
 
-<!-- ✅ Navbar -->
+<!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-success">
   <div class="container">
     <a class="navbar-brand" href="{{ url_for('home') }}">AgriScan AI</a>
@@ -63,10 +32,9 @@
         <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('history_page') }}">History</a></li>
         <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('about_page') }}">About</a></li>
         <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('contact_page') }}">Contact</a></li>
-
         {% if session.get('username') %}
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle text-white" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown">
               {{ session['username'] }}
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
@@ -81,18 +49,13 @@
     </div>
   </div>
 </nav>
-<!-- ✅ Dashboard Content -->
+
+<!-- Dashboard -->
 <div class="container dashboard">
   <h3 class="text-success text-center mb-4">📊 Crop Health Analytics</h3>
 
   <div class="row text-center">
-    <div class="col-md-4">
-      <div class="stat-box">
-        <h2>{{ total }}</h2>
-        <p>Total Images</p>
-      </div>
-    </div>
-    <div class="col-md-4">
+    <div class="col-md-4 offset-md-2">
       <div class="stat-box">
         <h2>{{ healthy_pct }}%</h2>
         <p>Healthy Plants</p>
@@ -114,29 +77,20 @@
 
 <script>
   const ctx = document.getElementById('healthChart').getContext('2d');
-  const healthChart = new Chart(ctx, {
+  new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: {{ chart_data.labels|tojson }},
+      labels: {{ chart_data.labels|tojson }},        // ["Healthy", "Infected"]
       datasets: [{
-        label: 'Count',
-        data: {{ chart_data.counts|tojson }},
+        data:  {{ chart_data.counts|tojson }},       // [healthyCount, infectedCount]
         backgroundColor: ['#198754', '#dc3545']
       }]
     },
     options: {
-      responsive: true,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: context => ` ${context.raw} plant(s)`
-          }
-        }
-      },
-      scales: {
-        y: { beginAtZero: true }
-      }
+      responsive:true,
+      plugins:{legend:{display:false},
+        tooltip:{callbacks:{label:c=>` ${c.raw} plant(s)`}}},
+      scales:{y:{beginAtZero:true}}
     }
   });
 </script>

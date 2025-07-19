@@ -6,49 +6,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    body {
-      background-color: #f9fdfb;
-    }
-    
-    .nav-link:hover {
-      color: #cce5cc !important;
-    }
-    .history-table {
-      background-color: #fff;
-      border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-    .table td img {
-      width: 100px;
-      height: 100px;
-      object-fit: cover;
-      border-radius: 8px;
-    }
-    @media (max-width: 768px) {
-      h3 {
-        font-size: 1.2rem;
-      }
-      .btn {
-        padding: 6px 10px;
-        font-size: 0.85rem;
-      }
-      .navbar-brand {
-        font-size: 1rem;
-      }
-      .table td, .table th {
-        font-size: 0.85rem;
-        padding: 0.4rem;
-      }
-      .table td img {
-        width: 80px;
-        height: 80px;
-      }
+    body{background:#f9fdfb;}
+    .history-table{background:#fff;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,.1);}
+    .table td img{width:100px;height:100px;object-fit:cover;border-radius:8px;}
+    @media(max-width:768px){
+      h3{font-size:1.2rem;}
+      .table td,.table th{font-size:.85rem;padding:.4rem;}
+      .table td img{width:80px;height:80px;}
     }
   </style>
 </head>
 <body>
 
-<!-- ✅ Navbar -->
+<!-- Navbar (unchanged) -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-success">
   <div class="container">
     <a class="navbar-brand" href="{{ url_for('home') }}">AgriScan AI</a>
@@ -63,10 +33,9 @@
         <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('history_page') }}">History</a></li>
         <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('about_page') }}">About</a></li>
         <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('contact_page') }}">Contact</a></li>
-
         {% if session.get('username') %}
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle text-white" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <a class="nav-link dropdown-toggle text-white" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
               {{ session['username'] }}
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
@@ -82,53 +51,49 @@
   </div>
 </nav>
 
-<!-- ✅ Page Content -->
+<!-- Page Content -->
 <div class="container mt-5">
   <div class="row mb-3 align-items-center">
     <div class="col-md-6">
       <h3 class="text-success">📜 Plant Analysis History</h3>
     </div>
     <div class="col-md-6 text-md-end mt-2 mt-md-0">
-      <form action="{{ url_for('clear_history') }}" method="POST" onsubmit="return confirm('Are you sure you want to delete all history?')">
+      <form action="{{ url_for('clear_history') }}" method="POST" onsubmit="return confirm('Delete all history?')">
         <button type="submit" class="btn btn-danger btn-sm">🗑️ Clear History</button>
       </form>
     </div>
   </div>
 
-  <!-- 🔍 Search -->
+  <!-- Search -->
   <div class="mb-3">
-    <input type="text" id="searchInput" class="form-control" placeholder="🔍 Search by disease, status, or date...">
+    <input type="text" id="searchInput" class="form-control" placeholder="🔍 Search...">
   </div>
 
-  <!-- 📊 Table -->
+  <!-- Table -->
   <div class="table-responsive history-table p-3">
     <table class="table table-bordered align-middle">
       <thead>
         <tr>
-          <th>#</th>
-          <th>Image</th>
-          <th>Disease</th>
-          <th>Confidence</th>
-          <th>Status</th>
-          <th>Timestamp</th>
-          <th>Report</th>
+          <th>#</th><th>Image</th><th>Disease</th><th>Confidence</th><th>Status</th><th>Timestamp</th><th>Report</th>
         </tr>
       </thead>
       <tbody>
         {% for item in records %}
         <tr>
           <td>{{ loop.index }}</td>
-          <td><img src="{{ url_for('static', filename='uploads/' + item[1]) }}" alt="Plant"></td>
+          <td><img src="{{ url_for('static', filename='uploads/' ~ item[1]) }}" alt="Plant"></td>
           <td>{{ item[2] }}</td>
-          <td>{{ (item[3] * 100) | round(2) }}%</td>
+          <td>{{ (item[3]*100)|round(2) }}%</td>
           <td>
-            {% if item[3] > 0.7 %}
+            {% if item[4] == 'Infected' %}
               <span class="badge bg-danger">Infected</span>
             {% else %}
               <span class="badge bg-success">Healthy</span>
             {% endif %}
           </td>
-          <td>{{ item[6] }}</td>
+
+          <!-- item[5] is timestamp -->
+          <td>{{ item[5] | datetimeformat }}</td>
           <td>
             <a class="btn btn-sm btn-outline-success" target="_blank"
                href="{{ url_for('download_pdf', image=item[1], disease=item[2], confidence=item[3], status=item[4]) }}">
@@ -142,18 +107,15 @@
   </div>
 </div>
 
-<!-- ✅ JavaScript for Search -->
+<!-- Search JS -->
 <script>
-  document.getElementById("searchInput").addEventListener("keyup", function () {
-    const value = this.value.toLowerCase();
-    const rows = document.querySelectorAll("table tbody tr");
-    rows.forEach(row => {
-      const rowText = row.innerText.toLowerCase();
-      row.style.display = rowText.includes(value) ? "" : "none";
-    });
+document.getElementById("searchInput").addEventListener("keyup",function(){
+  const val=this.value.toLowerCase();
+  document.querySelectorAll("tbody tr").forEach(r=>{
+    r.style.display=r.innerText.toLowerCase().includes(val)?"":"none";
   });
+});
 </script>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

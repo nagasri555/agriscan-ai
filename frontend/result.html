@@ -5,134 +5,30 @@
   <title>Plant Health Result</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
   <style>
-    body {
-      background-color: #f0fdf4;
-    }
-
-    .navbar-brand, .nav-link {
-      color: white !important;
-      font-weight: 500;
-    }
-
-    .nav-link:hover {
-      color: #cce5cc !important;
-    }
-
-    .result-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 90vh;
-      padding: 30px 15px;
-    }
-
-    .result-card {
-      display: flex;
-      flex-direction: row;
-      background-color: #ffffff;
-      border-radius: 20px;
-      padding: 30px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-      max-width: 1100px;
-      width: 100%;
-      gap: 30px;
-    }
-
-    .result-img {
-      width: 420px;
-      border-radius: 16px;
-      object-fit: cover;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-    }
-
-    .result-info {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-
-    .result-info h4 {
-      color: #198754;
-      font-weight: 600;
-      margin-bottom: 25px;
-    }
-
-    .info-row {
-      font-size: 1.1rem;
-      margin-bottom: 20px;
-    }
-
-    .info-label {
-      font-weight: 600;
-      margin-right: 6px;
-    }
-
-    .status-badge {
-      font-weight: bold;
-      padding: 6px 14px;
-      border-radius: 20px;
-    }
-
-    .infected {
-      background-color: #f8d7da;
-      color: #721c24;
-    }
-
-    .likely-healthy {
-      background-color: #fff3cd;
-      color: #856404;
-    }
-
-    .healthy {
-      background-color: #d4edda;
-      color: #155724;
-    }
-
-    .btn-analyze, .btn-download {
-      margin-top: 20px;
-      padding: 10px 20px;
-      font-size: 1rem;
-      border-radius: 8px;
-    }
-
-    .progress {
-      height: 20px;
-      max-width: 300px;
-      border-radius: 10px;
-    }
-
-    .progress-bar {
-      font-weight: 500;
-    }
-
-    @media (max-width: 992px) {
-      .result-card {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-      }
-
-      .result-img {
-        width: 100%;
-      }
-
-      .result-info {
-        align-items: center;
-      }
-
-      .progress {
-        max-width: 100%;
-      }
+    body{background:#f0fdf4;}
+    .result-container{display:flex;justify-content:center;align-items:center;min-height:90vh;padding:30px 15px;}
+    .result-card{display:flex;gap:30px;background:#fff;border-radius:20px;padding:30px;box-shadow:0 8px 24px rgba(0,0,0,.1);max-width:1100px;width:100%;}
+    .result-img{width:420px;border-radius:16px;object-fit:cover;box-shadow:0 4px 10px rgba(0,0,0,.08);}
+    .result-info{flex:1;display:flex;flex-direction:column;justify-content:center}
+    .result-info h4{color:#198754;font-weight:600;margin-bottom:25px;}
+    .info-row{font-size:1.1rem;margin-bottom:20px;}
+    .info-label{font-weight:600;margin-right:6px;}
+    .status-badge{font-weight:bold;padding:6px 14px;border-radius:20px;}
+    .infected{background:#f8d7da;color:#721c24;}
+    .healthy {background:#d4edda;color:#155724;}
+    .progress{height:20px;max-width:300px;border-radius:10px;}
+    @media (max-width:992px){
+      .result-card{flex-direction:column;align-items:center;text-align:center;}
+      .result-img{width:100%;}
+      .progress{max-width:100%;}
     }
   </style>
 </head>
 <body>
 
-  <!-- ✅ Navbar -->
- <nav class="navbar navbar-expand-lg navbar-dark bg-success">
+<!-- ✅ Navbar (unchanged) -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-success">
   <div class="container">
     <a class="navbar-brand" href="{{ url_for('home') }}">AgriScan AI</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -146,10 +42,9 @@
         <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('history_page') }}">History</a></li>
         <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('about_page') }}">About</a></li>
         <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('contact_page') }}">Contact</a></li>
-
         {% if session.get('username') %}
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle text-white" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown">
               {{ session['username'] }}
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
@@ -164,73 +59,55 @@
     </div>
   </div>
 </nav>
-  <!-- ✅ Result Content -->
-  <div class="container result-container">
-    {% if result.error %}
-      <div class="alert alert-danger text-center" role="alert">
-        ⚠️ {{ result.error }}
-      </div>
-    {% else %}
-      <div class="result-card">
-        <img src="{{ url_for('static', filename='uploads/' + image_name) }}" class="result-img" alt="Uploaded Plant Image">
 
-        <div class="result-info">
-          <h4>🌿 Plant Health Result</h4>
+<!-- ✅ Result Content -->
+<div class="container result-container">
+  {% if result.error %}
+    <div class="alert alert-danger text-center">⚠️ {{ result.error }}</div>
+  {% else %}
+    {% set status = 'Infected' if result.confidence >= 0.5 else 'Healthy' %}
+    <div class="result-card">
+      <img src="{{ url_for('static', filename='uploads/' ~ image_name) }}" class="result-img" alt="Plant image">
 
-          <div class="info-row">
-            <span class="info-label">🦠 Disease Detected:</span> {{ result.disease }}
-          </div>
+      <div class="result-info">
+        <h4>🌿 Plant Health Result</h4>
 
-          <div class="info-row">
-            <span class="info-label">🔎 Confidence:</span> {{ (result.confidence * 100) | round(2) }}%
-            <div class="progress mt-2">
-              <div class="progress-bar 
-                {% if result.confidence >= 0.7 %}
-                  bg-danger
-                {% elif result.confidence >= 0.3 %}
-                  bg-warning
-                {% else %}
-                  bg-success
-                {% endif %}"
-                role="progressbar"
-                style="width: {{ (result.confidence * 100) | round(2) }}%;">
-                {{ (result.confidence * 100) | round(2) }}%
-              </div>
+        <div class="info-row">
+          <span class="info-label">🦠 Disease Detected:</span> {{ result.disease }}
+        </div>
+
+        <div class="info-row">
+          <span class="info-label">🔎 Confidence:</span> {{ (result.confidence*100)|round(2) }}%
+          <div class="progress mt-2">
+            <div class="progress-bar {{ 'bg-danger' if status=='Infected' else 'bg-success' }}"
+                 role="progressbar"
+                 style="width: {{ (result.confidence*100)|round(2) }}%;">
+              {{ (result.confidence*100)|round(2) }}%
             </div>
           </div>
-
-          <div class="info-row">
-            <span class="info-label">📊 Status:</span>
-            {% if result.confidence >= 0.7 %}
-              <span class="status-badge infected">🔴 Infected</span>
-            {% elif result.confidence >= 0.3 %}
-              <span class="status-badge likely-healthy">🟡 Likely Healthy</span>
-            {% else %}
-              <span class="status-badge healthy">🟢 Healthy</span>
-            {% endif %}
-          </div>
-
-          {% if result.treatment %}
-          <div class="info-row">
-            <span class="info-label">💡 Suggested Treatment:</span> {{ result.treatment }}
-          </div>
-          {% endif %}
-
-          <a href="{{ url_for('upload_page') }}" class="btn btn-success btn-analyze">🔁 Analyze Another Plant</a>
-          <a href="{{ url_for('download_pdf',
-            disease=result.disease,
-            confidence=result.confidence,
-            status='Infected' if result.confidence >= 0.7 else ('Likely Healthy' if result.confidence >= 0.3 else 'Healthy'),
-            treatment=result.treatment,
-            image=image_name) }}"
-            class="btn btn-outline-danger btn-download ms-2" target="_blank">
-            📄 Download PDF Report
-          </a>
         </div>
-      </div>
-    {% endif %}
-  </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <div class="info-row">
+          <span class="info-label">📊 Status:</span>
+          <span class="status-badge {{ 'infected' if status=='Infected' else 'healthy' }}">
+            {{ '🔴 Infected' if status=='Infected' else '🟢 Healthy' }}
+          </span>
+        </div>
+
+        <a href="{{ url_for('upload_page') }}" class="btn btn-success mt-2">🔁 Analyze Another Plant</a>
+        <a href="{{ url_for('download_pdf',
+              disease=result.disease,
+              confidence=result.confidence,
+              status=status,
+              image=image_name) }}"
+           class="btn btn-outline-danger mt-2" target="_blank">
+          📄 Download PDF Report
+        </a>
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
