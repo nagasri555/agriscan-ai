@@ -96,13 +96,14 @@
 
         <a href="{{ url_for('upload_page') }}" class="btn btn-success mt-2">🔁 Analyze Another Plant</a>
         <a href="{{ url_for('download_pdf',
-              disease=result.disease,
-              confidence=result.confidence,
-              status=status,
-              image=image_name) }}"
-           class="btn btn-outline-danger mt-2" target="_blank">
+          disease=result.disease|default('Unknown'),
+          confidence=result.confidence|default(0),
+          status=status|default('Unknown'),
+          image=image_name|default('')) }}"
+          class="btn btn-outline-danger mt-2" target="_blank">
           📄 Download PDF Report
         </a>
+
       </div>
     </div>
   {% endif %}

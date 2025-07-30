@@ -21,7 +21,6 @@ PLANT_ID_API_KEY = os.getenv("PLANT_ID_API_KEY")
 app = Flask(__name__, template_folder='frontend')
 CORS(app)
 
-# 🔑 Jinja filter for pretty timestamps
 @app.template_filter('datetimeformat')
 def datetimeformat(value, fmt='%d-%m-%Y %H:%M'):
     try:
@@ -30,7 +29,7 @@ def datetimeformat(value, fmt='%d-%m-%Y %H:%M'):
     except Exception:
         return value
 
-app.secret_key = 'your_secret_key_here'  # TODO: set strong key
+app.secret_key = 'your_secret_key_here'
 UPLOAD_FOLDER        = os.path.join(os.getcwd(), 'uploads')
 STATIC_UPLOAD_FOLDER = os.path.join(app.root_path, 'static', 'uploads')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -94,14 +93,20 @@ def login():
         conn = sqlite3.connect('analysis.db'); cur = conn.cursor()
         cur.execute("SELECT * FROM users WHERE email=?", (email,)); user = cur.fetchone(); conn.close()
         if user and check_password_hash(user[3], password):
-            session.update(user_id=user[0], username=user[1], role=user[4])
-            flash('Login successful!', 'success'); return redirect(url_for('home'))
+            # 🔑 CHANGED: use explicit assignment instead of session.update()
+            session['user_id'] = user[0]
+            session['username'] = user[1]
+            session['role'] = user[4]
+            flash('Login successful!', 'success')
+            return redirect(url_for('home'))
         flash('Invalid credentials', 'danger')
     return render_template('login.html')
 
 @app.route('/logout')
 def logout():
-    session.clear(); flash('Logged out successfully.', 'info'); return redirect(url_for('login'))
+    session.clear()
+    flash('Logged out successfully.', 'info')
+    return redirect(url_for('login'))
 
 # ---------- PREDICT -----------------------------------------------
 @app.route('/predict', methods=['POST'])
@@ -125,12 +130,16 @@ def predict():
         return render_template("result.html", result={"error": msg}, image_name=fname)
 
     disease, confidence = result.get("prediction","Unknown Disease"), result.get("confidence",0)
+    try:
+        confidence = float(confidence)
+    except:
+        confidence = 0.0
     status = 'Infected' if confidence >= 0.5 else 'Healthy'
 
     conn = sqlite3.connect('analysis.db'); cur = conn.cursor()
-    cur.execute("""INSERT INTO analysis_history (image_name,disease,confidence,status,timestamp)
-                   VALUES (?,?,?,?,?)""",
-                (fname, disease, confidence, status, datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+    cur.execute("""INSERT INTO analysis_history (user_id, image_name,disease,confidence,status,timestamp)
+                   VALUES (?,?,?,?,?,?)""",
+                (session['user_id'], fname, disease, confidence, status, datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
     conn.commit(); conn.close()
 
     return render_template("result.html", result={"disease":disease,"confidence":confidence,"status":status},
@@ -141,9 +150,26 @@ def predict():
 def history_page():
     if 'username' not in session:
         return redirect(url_for('login'))
-    conn = sqlite3.connect('analysis.db'); cur = conn.cursor()
-    cur.execute("SELECT * FROM analysis_history ORDER BY id DESC"); rows = cur.fetchall(); conn.close()
-    processed = [list(r[:3])+[float(r[3])]+list(r[4:]) for r in rows]  # ensure confidence float
+    
+    conn = sqlite3.connect('analysis.db')
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT id, image_name, disease, confidence, status, timestamp
+        FROM analysis_history 
+        WHERE user_id=? 
+        ORDER BY id DESC
+    """, (session['user_id'],))
+    rows = cur.fetchall()
+    conn.close()
+
+    processed = []
+    for r in rows:
+        try:
+            conf = float(r[3]) if r[3] is not None else 0.0
+        except (ValueError, TypeError):
+            conf = 0.0
+        processed.append([r[0], r[1], r[2], conf, r[4], r[5]])
+
     return render_template('history.html', records=processed)
 
 @app.route('/clear_history', methods=['POST'])
@@ -151,35 +177,9 @@ def clear_history():
     if 'username' not in session:
         return redirect(url_for('login'))
     conn = sqlite3.connect('analysis.db'); cur = conn.cursor()
-    cur.execute("DELETE FROM analysis_history"); conn.commit(); conn.close()
+    cur.execute("DELETE FROM analysis_history WHERE user_id=?", (session['user_id'],))
+    conn.commit(); conn.close()
     return render_template('history.html', records=[])
-
-# ---------- DOWNLOAD PDF ------------------------------------------
-@app.route('/download_pdf')
-def download_pdf():
-    if 'username' not in session:
-        return redirect(url_for('login'))
-    from reportlab.platypus import SimpleDocTemplate, Image as RLImage, Paragraph, Spacer, Table, TableStyle
-    from reportlab.lib.styles import getSampleStyleSheet; from reportlab.lib import colors; from reportlab.lib.units import inch
-    disease  = request.args.get('disease','Unknown')
-    confidence = float(request.args.get('confidence',0))*100
-    status   = request.args.get('status','Unknown')
-    image_name = request.args.get('image',None)
-
-    buf = BytesIO(); doc = SimpleDocTemplate(buf,pagesize=A4,rightMargin=50,leftMargin=50,topMargin=50,bottomMargin=50)
-    styles = getSampleStyleSheet(); story=[]
-    title_style=styles['Heading1']; title_style.textColor=colors.green
-    story.append(Paragraph("🌿 Plant Disease Detection Report", title_style)); story.append(Spacer(1,12))
-
-    image_path = os.path.join('static','uploads',image_name) if image_name else None
-    img = RLImage(image_path) if image_path and os.path.exists(image_path) else None
-    if img: img.drawHeight, img.drawWidth = 3*inch, 3*inch
-
-    data=[['🧬 Disease:',disease],['🔎 Confidence:',f"{confidence:.2f}%"],['📊 Status:',status]]
-    table=Table(data,colWidths=[130,320]); table.setStyle(TableStyle([('FONTNAME',(0,0),(-1,-1),'Helvetica'),('FONTSIZE',(0,0),(-1,-1),12)]))
-    story.append(Table([[img,table]],colWidths=[3.2*inch,3.7*inch]) if img else table)
-    doc.build(story); buf.seek(0)
-    return send_file(buf, as_attachment=True, download_name="plant_report.pdf", mimetype='application/pdf')
 
 # ---------- ANALYTICS ---------------------------------------------
 @app.route('/analytics')
@@ -189,12 +189,11 @@ def analytics():
 
     conn = sqlite3.connect('analysis.db')
     cur = conn.cursor()
-    cur.execute("SELECT status FROM analysis_history")
+    cur.execute("SELECT status FROM analysis_history WHERE user_id=?", (session['user_id'],))
     statuses = [r[0] for r in cur.fetchall()]
     conn.close()
 
     total = len(statuses)
-
     healthy = statuses.count('Healthy')
     infected = statuses.count('Infected')
 
@@ -239,11 +238,15 @@ def camera_predict():
             msg="🚫 Too many requests. Please wait 10–15 s and try again." if "429" in result["error"] else result["error"]
             return jsonify({"error":msg})
         disease, confidence = result.get("prediction","Unknown Disease"), result.get("confidence",0)
+        try:
+            confidence = float(confidence)
+        except:
+            confidence = 0.0
         status = 'Infected' if confidence >= 0.5 else 'Healthy'
         conn = sqlite3.connect('analysis.db'); cur = conn.cursor()
-        cur.execute("""INSERT INTO analysis_history (image_name,disease,confidence,status,timestamp)
-                       VALUES (?,?,?,?,?)""",
-                    (fname,disease,confidence,status,datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+        cur.execute("""INSERT INTO analysis_history (user_id, image_name,disease,confidence,status,timestamp)
+                       VALUES (?,?,?,?,?,?)""",
+                    (session['user_id'], fname,disease,confidence,status,datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
         conn.commit(); conn.close()
         return jsonify({"disease":disease,"confidence":confidence,"status":status})
     except Exception as e:
@@ -264,8 +267,11 @@ def init_db():
     cur.execute('''
         CREATE TABLE IF NOT EXISTS analysis_history (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
             image_name TEXT, disease TEXT, confidence REAL,
-            status TEXT, timestamp TEXT)
+            status TEXT, timestamp TEXT,
+            FOREIGN KEY(user_id) REFERENCES users(id)
+        )
     ''')
     cur.execute('''
         CREATE TABLE IF NOT EXISTS users (
@@ -288,6 +294,50 @@ app.config.update(
     MAIL_DEFAULT_SENDER='your_admin_email@gmail.com'
 )
 mail = Mail(app)
+
+@app.route('/download_pdf')
+def download_pdf():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
+    disease = request.args.get('disease', 'Unknown')
+    confidence = float(request.args.get('confidence', 0)) * 100
+    status = request.args.get('status', 'Unknown')
+    image_name = request.args.get('image', '')
+
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+
+    c.setFont("Helvetica-Bold", 18)
+    c.drawCentredString(width / 2, height - 50, "AgriScan AI - Plant Health Report")
+
+    c.setFont("Helvetica", 12)
+    c.drawString(50, height - 120, f"User: {session['username']}")
+    c.drawString(50, height - 140, f"Date: {datetime.now().strftime('%d-%m-%Y %H:%M')}")
+
+    c.drawString(50, height - 180, f"Disease Detected: {disease}")
+    c.drawString(50, height - 200, f"Confidence: {confidence:.2f}%")
+    c.drawString(50, height - 220, f"Status: {status}")
+
+    if image_name:
+        img_path = os.path.join(STATIC_UPLOAD_FOLDER, image_name)
+        if os.path.exists(img_path):
+            try:
+                img = Image.open(img_path)
+                img.thumbnail((300, 300))
+                img.save("temp_img.jpg")
+                c.drawImage("temp_img.jpg", width - 350, height - 400, width=250, preserveAspectRatio=True, mask='auto')
+            except Exception as e:
+                print("⚠️ Error adding image to PDF:", e)
+
+    c.showPage()
+    c.save()
+
+    buffer.seek(0)
+    return send_file(buffer, as_attachment=True,
+                     download_name="AgriScan_Report.pdf",
+                     mimetype='application/pdf')
 
 # ------------------------------------------------------------------
 if __name__ == '__main__':
